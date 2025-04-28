@@ -76,8 +76,18 @@ def get_info_author(author, page):
 #         print(f"{level['name']} by {level['author']}\nLikes: {level['likes']}\nObjects: {level['objects']}\nDownloads: {level['downloads']}\n{level['id']}\n\n!!!")
 
 data = {}
+data_cl = {}
 exist_levels = []
 
+with open('data.json', 'r', encoding='utf-8') as f:
+    file = f.read()
+    data = json.loads(file)
+    print(f'Data successfully loaded (len is {len(data.keys())})')
+
+with open('data-new.json', 'r', encoding='utf-8') as f:
+    file = f.read()
+    data_cl = json.loads(file)
+    print(f'Data new successfully loaded (len is {len(data_cl.keys())})')
 
 with open('exist_levels.json', 'r', encoding='utf-8') as f:
     file = f.read()
@@ -85,32 +95,35 @@ with open('exist_levels.json', 'r', encoding='utf-8') as f:
     print(f'Exist levels successfully loaded (len is {len(exist_levels)})')
 
 
-with open('data.json', 'r', encoding='utf-8') as f:
-    file = f.read()
-    data = json.loads(file)
-    print(f'Data successfully loaded (len is {len(data.keys())})')
+with open('data.json', 'w', encoding='utf-8') as f:
+    f.write(json.dumps({**data, **data_cl}))
+    print(f'Data and data new successfully merged (len is {len(data.keys()) + len(data_cl.keys())})')
+with open('data-new.json', 'w', encoding='utf-8') as f:
+    f.write(json.dumps({}))
 
+data_cl = {}
+old_data_len = len(data.keys())
 while True:
     try:
         id = randint(128, 118028738)
-        if id in data.keys():
+        if str(id) in data.keys() or id in data_cl.keys():
             print(f'ID {id} is already exist')
+            exist_levels.append(id)
             with open('exist_levels.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(exist_levels))
             continue
         level = get_info(id)
         if level != None:
-            data[level['id']] = level
-            with open('data.json', 'w', encoding='utf-8') as f:
-                f.write(json.dumps(data))
-            print(f'\nData length: {len(data.keys())}\n')
+            data_cl[level['id']] = level
+            with open('data-new.json', 'w', encoding='utf-8') as f:
+                f.write(json.dumps(data_cl))
+            print(f'\nData length: {len(data_cl.keys()) + old_data_len} ({len(data_cl.keys())})\n')
             print(f"""[{ctime()}]\n{level['name']} by {level['author']}
         
 Likes: {level['likes']}
 Downloads: {level['downloads']}
 Objects: {level['objects']}
 Version: {level['gameVersion']}
-Stars: {level['stars']}
 {level['id']}
     """)
         else:
