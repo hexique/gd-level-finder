@@ -101,8 +101,9 @@ with open('data.json', 'w', encoding='utf-8') as f:
 with open('data-new.json', 'w', encoding='utf-8') as f:
     f.write(json.dumps({}))
 
+old_data_len = len(data.keys()) + len(data_cl.keys())
 data_cl = {}
-old_data_len = len(data.keys())
+
 while True:
     try:
         id = randint(128, 118028738)
@@ -127,7 +128,7 @@ Version: {level['gameVersion']}
 {level['id']}
     """)
         else:
-            data[id] = None
+            data_cl[id] = None
             print(f'ID {id} is not exist')
     except Exception as e:
         print(ctime(), e)
