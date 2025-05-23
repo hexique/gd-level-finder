@@ -3,6 +3,8 @@ import json
 from random import randint
 from time import ctime
 
+BACKUP_FREQ = 10000
+
 def get_info(level_id):
     url = f"https://gdbrowser.com/api/level/{level_id}"
     
@@ -117,7 +119,9 @@ while True:
         if level != None:
             data_cl[level['id']] = level
             with open('data-new.json', 'w', encoding='utf-8') as f:
+                print('<', end='')
                 f.write(json.dumps(data_cl))
+            print('>')
             print(f'\nData length: {len(data_cl.keys()) + old_data_len} ({len(data_cl.keys())})\n')
             print(f"""[{ctime()}]\n{level['name']} by {level['author']}
         
@@ -129,7 +133,13 @@ Version: {level['gameVersion']}
     """)
         else:
             data_cl[id] = None
-            print(f'ID {id} is not exist')
+            print(f'ID {id} is not exist ({len(data_cl.keys()) + old_data_len})')
+        if (len(data_cl.keys()) + old_data_len) % BACKUP_FREQ == 0:
+            with open(f'data ({len(data_cl.keys()) + old_data_len}) (auto).json', 'w', encoding='utf-8') as f:
+                f.write(json.dumps({**data, **data_cl}))
+                data_cl = {}
+            print(f'Data and data new successfully merged (len is {len(data.keys()) + len(data_cl.keys())})')
+
     except Exception as e:
         print(ctime(), e)
     # input()
