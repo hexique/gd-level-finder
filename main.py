@@ -137,8 +137,11 @@ Version: {level['gameVersion']}
             data_cl[id] = None
             print(f'ID {id} is not exist ({len(data_cl.keys()) + old_data_len})')
         if (len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len) % BACKUP_FREQ == 0:
-            with open(f'data ({len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len}) (auto).json', 'w', encoding='utf-8') as f:
+            with open(f'bckp\data ({len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len}) (auto).json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps({**data, **data_cl}))
+            with open(f'data.json', 'w', encoding='utf-8') as f:
+                f.write(json.dumps({**data, **data_cl}))
+            
             multiplier += 1
             data = {**data, **data_cl}
             print(f'Data and data temp successfully merged (len is {len(data.keys()) + BACKUP_FREQ * multiplier + len(data_cl.keys())})')
