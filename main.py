@@ -14,16 +14,15 @@ def get_info(level_id):
         
         
         data = response.json()
-
-        # print(data)
         return data
     
     except requests.exceptions.RequestException as e:
-        # print(f'Failed to find level {level_id}')
+        print(e)
         return
     except json.JSONDecodeError:
         print(response)
         return
+
 
 def get_info_author(author, page):
     url = f"https://gdbrowser.com/api/search/{author}?page={page}&count=10&user"
@@ -37,8 +36,9 @@ def get_info_author(author, page):
 
         # print(levels)
         result = [i['id'] for i in levels]
+        print(f'Response: {response}\nAuthor: {author}\nLevel: {level["id"]}')
         return (result, levels)
-
+    
     except requests.exceptions.RequestException as e:
         print(f'Failed to find level {e}\nResponse: {response}\nAuthor: {author}\nLevel: {level["id"]}')
         return
@@ -81,29 +81,47 @@ data = {}
 data_cl = {}
 exist_levels = []
 
-multiplier = 0
+try:
+    with open('data.json', 'r', encoding='utf-8') as f:
+        file = f.read()
+        data = json.loads(file)
+        print(f'Data successfully loaded (len is {len(data.keys())})')
+except:
+    print('data.json is not found')
+    with open('data.json', 'w', encoding='utf-8') as f:
+        f.write("")
+        data = {}
 
-with open('data.json', 'r', encoding='utf-8') as f:
-    file = f.read()
-    data = json.loads(file)
-    print(f'Data successfully loaded (len is {len(data.keys())})')
+try:
+    with open('data-temp.json', 'r', encoding='utf-8') as f:
+        file = f.read()
+        data_cl = json.loads(file)
+        print(f'Data temp successfully loaded (len is {len(data_cl.keys())})')
+except:
+    print('data-temp.json is not found')
+    with open('data-temp.json', 'w', encoding='utf-8') as f:
+        f.write("")
+        data_cl = {}
 
-with open('data-temp.json', 'r', encoding='utf-8') as f:
-    file = f.read()
-    data_cl = json.loads(file)
-    print(f'data temp successfully loaded (len is {len(data_cl.keys())})')
+try:
+    with open('exist-levels.json', 'r', encoding='utf-8') as f:
+        file = f.read()
+        exist_levels = json.loads(file)
+        print(f'Exist levels successfully loaded (len is {len(exist_levels)})')
+except:
+    print('exist-levels.json is not found')
+    with open('exist-levels.json', 'w', encoding='utf-8') as f:
+        f.write("")
+        exist_levels = []
 
-with open('exist-levels.json', 'r', encoding='utf-8') as f:
-    file = f.read()
-    exist_levels = json.loads(file)
-    print(f'Exist levels successfully loaded (len is {len(exist_levels)})')
+try:
+    with open('data.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps({**data, **data_cl}))
+        print(f'Data and data temp successfully merged (len is {len(data.keys()) + len(data_cl.keys())})')
+    with open('data-temp.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps({}))
+except: pass
 
-
-with open('data.json', 'w', encoding='utf-8') as f:
-    f.write(json.dumps({**data, **data_cl}))
-    print(f'Data and data temp successfully merged (len is {len(data.keys()) + len(data_cl.keys())})')
-with open('data-temp.json', 'w', encoding='utf-8') as f:
-    f.write(json.dumps({}))
 
 old_data_len = len(data.keys()) + len(data_cl.keys())
 data_cl = {}
@@ -111,7 +129,7 @@ data_cl = {}
 while True:
     try:
         id = randint(128, 118028738)
-        if str(id) in data.keys() or id in data_cl.keys():
+        if str(id) in data.keys() or str(id) in data_cl.keys():
             print(f'ID {id} is already exist')
             exist_levels.append(id)
             with open('exist-levels.json', 'w', encoding='utf-8') as f:
@@ -120,11 +138,11 @@ while True:
         level = get_info(id)
         if level != None:
             data_cl[level['id']] = level
+            print('<', end='')
             with open('data-temp.json', 'w', encoding='utf-8') as f:
-                print('<', end='')
                 f.write(json.dumps(data_cl))
             print('>')
-            print(f'\nData length: {len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len} ({len(data_cl.keys()) + BACKUP_FREQ * multiplier})\n')
+            print(f'\nData length: {len(data_cl.keys()) + old_data_len} ({len(data_cl.keys())})\n')
             print(f"""[{ctime()}]\n{level['name']} by {level['author']}
         
 Likes: {level['likes']}
@@ -136,16 +154,10 @@ Version: {level['gameVersion']}
         else:
             data_cl[id] = None
             print(f'ID {id} is not exist ({len(data_cl.keys()) + old_data_len})')
-        if (len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len) % BACKUP_FREQ == 0:
-            with open(f'bckp\data ({len(data_cl.keys()) + BACKUP_FREQ * multiplier + old_data_len}) (auto).json', 'w', encoding='utf-8') as f:
+        if (len(data_cl.keys()) + old_data_len) % BACKUP_FREQ == 0 or (len(data_cl.keys()) + old_data_len) == 1390420:
+            with open(f'bckp\data ({len(data_cl.keys()) + old_data_len}) (auto).json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps({**data, **data_cl}))
-            with open(f'data.json', 'w', encoding='utf-8') as f:
-                f.write(json.dumps({**data, **data_cl}))
-            
-            multiplier += 1
-            data = {**data, **data_cl}
-            print(f'Data and data temp successfully merged (len is {len(data.keys()) + BACKUP_FREQ * multiplier + len(data_cl.keys())})')
-            data_cl = {}
+            print(f'Data and data temp successfully merged (len is {len(data.keys()) + len(data_cl.keys())})')
 
     except Exception as e:
         print(ctime(), e)
